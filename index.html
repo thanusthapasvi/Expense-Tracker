@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Expense Tracker</title>
+	<style>
+		:root {
+			--color: #209fdf;
+			--color2: #9f20df;
+			--black: hsl(0deg, 0%, 0%);
+			--text: #000000;
+		}
+		*, *::after, *::before {
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		body, html {
+			width: 100%;
+			height: 100%;
+		}
+		header {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: clamp(50px, 4rem, 80px);
+			background-color: var(--color);
+			color: var(--text);
+			padding: 0.5rem;
+			justify-content: space-between;
+			z-index: 20;
+		}
+		body {
+			background-color: var(--black);
+			position: relative;
+		}
+		.menu-pop {
+			display: none;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			width: clamp(280px, 25%, 400px);
+			height: clamp(300px, 25%, 400px);
+			transform: translate(-50%, -50%);
+			background-color: transparent;
+			z-index: 10;
+		}
+		.menu-content {
+			width: 100%;
+			height: 100%;
+			position: relative;
+			padding: 1rem;
+			padding-top: 3rem;
+			gap: 0.5rem;
+			background-color: hsl(from var(--black) h s calc(l + 10));
+			border-radius: 12px;
+		}
+		.menu-row {
+			width: 100%;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+		.menu-label {
+			font-size: 1.2rem;
+			color: white;
+		}
+		input[type="color"] {
+			width: 2rem;
+			height: 2rem;
+			border: none;
+		}
+		input[type="number"] {
+			width: 4rem;
+			height: 2rem;
+			font-size: 1.2rem;
+		}
+		.default {
+			font-size: 1.2rem;
+			width: 150px;
+			height: 2rem;
+			padding: 4px 6px;
+			background: linear-gradient(to bottom, #ff4545, #aa1212);
+			border: 2px solid transparent;
+		}
+		.default:active {
+			transform: scale(0.9);
+		}
+		.save {
+			position: absolute;
+			bottom: 1.5rem;
+			left: 50%;
+			width: 5rem;
+			height: 2rem;
+			font-size: 1.4rem;
+			background-color: var(--color);
+			color: var(--text);
+			border: 2px solid transparent;
+			transform: translateX(-50%);
+			border-radius: 4px;
+		}
+		.save:active {
+			transform: scale(0.9) translateX(-50%);
+		}
+
+		.budget-track {
+			width: clamp(280px, 30%, 500px);
+			height: clamp(280px, 30%, 500px);
+			background-color: hsl(from var(--black) h s calc(l + 20));
+		}
+		.top-row, .bottom-row {
+			width: 100%;
+			padding: 0.5rem;
+		}
+		.top-row {
+			position: absolute;
+			height: 4.5rem;
+			top: 0;
+			left: 0;
+			background-color: hsl(from var(--black) h s calc(l + 30));
+			color: var(--text);
+			border-radius: 12px 12px 0 0;
+			text-align: center;
+		}
+		.bottom-row {
+			margin-top: 5rem;
+			height: calc(100% - 4.5rem);
+			color: white;
+			gap: 1rem;
+		}
+		.start-total {
+			gap: 1rem;
+		}
+		.current-amount {
+			font-size: 2rem;
+			font-weight: bold;
+		}
+		.start-amount {
+			font-weight: bold;
+		}
+		.add-amount-label {
+			font-size: 2rem;
+		}
+		#add-spent {
+			width: 6rem;
+			height: 2rem;
+		}
+		.add {
+			width: 5rem;
+			height: 2rem;
+			font-size: 1.4rem;
+			background-color: var(--color);
+			color: var(--text);
+			border: 2px solid transparent;
+			border-radius: 4px;
+		}
+
+		.set-total-amount {
+			display: none;
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			width: clamp(250px, 25%, 350px);
+			height: 200px;
+			background-color: transparent;
+		}
+		.set-total-amount-main {
+			width: 100%;
+			height: 100%;
+			background-color: black;
+			gap: 1rem;
+			color: white;
+			& p {
+				font-size: 1.6rem;
+			}
+			& input {
+				width: 200px;
+				height: 2rem;
+				border: 2px solid var(--color2);
+				box-shadow: 0 0 6px 2px var(--color2);
+			}
+			& button {
+				width: 6rem;
+				height: 2rem;
+				font-size: 1rem;
+				background-color: var(--color);
+				color: var(--text);
+				border: 2px solid transparent;
+				border-radius: 4px;
+			}
+		}
+		.close-pop {
+			position: absolute;
+			top: 4px;
+			right: 0.5rem;
+			font-size: 1.3rem;
+			color: white;
+			background-color: transparent;
+			cursor: pointer;
+		}
+		.close-pop:hover {
+			color: red;
+		}
+
+		.flex {
+			display: flex;
+		}
+		.align-center {
+			align-items: center;
+		}
+		.justify-center {
+			justify-content: center;
+		}
+		.flex-column {
+			flex-direction: column;
+		}
+		.pointer {
+			cursor: pointer;
+		}
+		.gradient-border {
+			position: relative;
+			border-radius: 12px;
+		}
+		.gradient-border::after {
+			position: absolute;
+			content: "";
+			width: calc(100% + 4px);
+			height: calc(100% + 4px);
+			top: 0;
+			left: 0;
+			transform: translate(-2px, -2px);
+			background: linear-gradient(to right, var(--color), var(--color2));
+			border-radius: 12px;
+			z-index: -1;
+		}
+
+
+		@media(hover: hover) and (pointer: fine) {
+			.save:hover {
+				border: 2px solid var(--color2);
+			}
+			.default:hover {
+				border: 2px solid var(--color2);
+			}
+		}
+	</style>
+</head>
+<body class="flex align-center justify-center">
+	<header class="flex align-center">
+		<h1>Expense Tracker</h1>
+		<svg width="32" height="32" viewport="0 0 32 32" alt="menu icon" id="menu" class="pointer" onclick="openMenu()">
+			<rect x="13" y="3" width="6" height="6" rx="1.5" fill="var(--color2)"/>
+			<rect x="13" y="13" width="6" height="6" rx="1.5" fill="var(--color2)"/>
+			<rect x="13" y="23" width="6" height="6" rx="1.5" fill="var(--color2)"/>
+		</svg>
+	</header>
+
+	<div class="budget-track gradient-border">
+		<div class="top-row">
+			<p class="current-amount">0</p>
+			<div class="start-total flex align-center justify-center">
+				<p>Start Amount: <span class="start-amount">0</span></p>
+				<svg class="edit-start pointer" width="24" height="24" viewport="0 0 24 24" onclick="setTotalAmount()">
+					<rect x="16" y="5" width="4" height="4" rx="0.5" transform="rotate(-45, 16, 4)" fill="var(--color2)"/>
+					<rect x="4" y="14" width="14" height="4" transform="rotate(-45, 6.5, 12)" fill="var(--color2)"/>
+					<path d="M6.5 15.5 L 8.5 17.5 L 5 19Z" fill="black"/>
+				</svg>
+			</div>
+		</div>
+		<div class="bottom-row flex align-center justify-center flex-column">
+			<label for="add-spent" class="add-amount-label">Add Spent Amount</label>
+			<input type="number" name="add" id="add-spent" value="0" min="0"/>
+			<button type="button" class="add pointer" onclick="addSpentAmount()">Add</button>
+		</div>
+	</div>
+	<div class="set-total-amount">
+		<div class="set-total-amount-main gradient-border flex align-center justify-center flex-column">
+			<p onclick="openSetTotalPop()" class="close-pop">X</p>
+			<p>Set Month's Budget</p>
+			<input type="number" name="month-amount" id="set-total" min="1" required />
+			<button class="add-set-total pointer" >Set Amount</button>
+		</div>
+	</div>
+
+	<div class="menu-pop ">
+		<div class="menu-content flex align-center flex-column gradient-border">
+			<div class="menu-row">
+				<label for="color-1" class="menu-label">Primary Color:</label>
+				<input type="color" name="color-1" id="color1"/>
+			</div>
+			<div class="menu-row">
+				<label for="color-2" class="menu-label">Secondary Color:</label>
+				<input type="color" name="color-2" id="color2"/>
+			</div>
+			<div class="menu-row">
+				<label for="first-day" class="menu-label">First day of Month:</label>
+				<input type="number" name="first-day" id="first-day" min="1" max="10" value="1" />
+			</div>
+			<button type="button" class="default pointer" onclick="restoreDefault()">Restore Default</button>
+			<button type="submit" class="save pointer">Save</button>
+		</div>
+	</div>
+	<script>
+		const menu = document.querySelector("#menu");
+		const menuPop = document.querySelector(".menu-pop");
+		let isMenuOpen = false;
+		function openMenu() {
+			if(isMenuOpen) {
+				menuPop.style.display = "none";
+				isMenuOpen = false;
+			} else {
+				menuPop.style.display = "flex";
+				isMenuOpen = true;
+			}
+		}
+
+		const color1 = document.querySelector("#color1");
+		const color2 = document.querySelector("#color2");
+		const firstDay = document.querySelector("#first-day");
+		const saveMenu = document.querySelector(".save");
+
+		// to set color value to css variable and to input
+		const savedColor1 = localStorage.getItem('color');
+		const savedColor2 = localStorage.getItem('color2');
+		const savedFirstDay = localStorage.getItem('firstDay');
+		if (savedColor1) {
+		    document.documentElement.style.setProperty('--color', savedColor1);
+		    textColor();
+		    color1.value = savedColor1;
+		}
+		if (savedColor2) {
+		    document.documentElement.style.setProperty('--color2', savedColor2);
+		    color2.value = savedColor2;
+		}
+		if(savedFirstDay) {
+			firstDay.value = savedFirstDay;
+		}
+
+		//save the colors
+		saveMenu.addEventListener('click', function(){
+			const selectedColor1 = color1.value;
+			const selectedColor2 = color2.value;
+			const selectedFirstDay = firstDay.value;
+
+			document.documentElement.style.setProperty('--color', selectedColor1);
+			document.documentElement.style.setProperty('--color2', selectedColor2);
+
+			localStorage.setItem('color', selectedColor1);
+			localStorage.setItem('color2', selectedColor2);
+			localStorage.setItem('firstDay', selectedFirstDay);
+
+			openMenu();
+		} );
+
+		function restoreDefault() {
+			const defaultColor1 = '#209fdf';
+			const defaultColor2 = '#9f20df';
+
+			localStorage.setItem('color', defaultColor1);
+		    localStorage.setItem('color2', defaultColor2);
+		    localStorage.setItem('firstDay', 1);
+
+		    document.documentElement.style.setProperty('--color', defaultColor1);
+		    document.documentElement.style.setProperty('--color2', defaultColor2);
+
+		    color1.value = defaultColor1;
+		    color2.value = defaultColor2;
+		    firstDay.value = 1;
+		    textColor();
+		}
+		function getLightness(color) {
+			color = color.replace("#", "");
+
+			if(color.length === 3) {
+				color = color.split("").map(c => c + c).join("");
+			}
+			const r = parseInt(color.substring(0, 2), 16) / 255;
+			const g = parseInt(color.substring(2, 4), 16) / 255;
+			const b = parseInt(color.substring(4, 6), 16) / 255;
+
+			const min = Math.min(r, g, b);
+			const max = Math.max(r, g, b);
+
+			const lightness = (max + min) / 2;
+			return lightness * 100;
+		}
+		function textColor() {
+			if(getLightness(savedColor1) <= 50) {
+		    	document.documentElement.style.setProperty('--text', "#FFFFFF");
+		    } else {
+		    	document.documentElement.style.setProperty('--text', "#000000");
+			}
+		}
+
+		/* Budget Tracker*/
+		let totalAmount, currentAmount;
+		const setTotalPop = document.querySelector(".set-total-amount");
+
+		const currentAmountText = document.querySelector(".current-amount");
+		const totalAmountText = document.querySelector(".start-amount");
+
+		const editTotal = document.querySelector(".edit-start");
+		const addAmoutn = document.querySelector(".add");
+
+		const addInput = document.querySelector("#add-spent");
+
+		let isSetTotalOpen = false;
+		function openSetTotalPop() {
+			if(isSetTotalOpen) {
+				setTotalPop.style.display = "none";
+				isSetTotalOpen = false;
+			} else {
+				setTotalPop.style.display = "flex";
+				isSetTotalOpen = true;
+			}
+		}
+		if(localStorage.getItem('totalAmount')) {
+			totalAmount = localStorage.getItem('totalAmount');
+			totalAmountText.innerText = totalAmount;
+		} else {
+			setTotalAmount();
+		}
+		if(localStorage.getItem('currentAmount')) {
+			currentAmount = localStorage.getItem('currentAmount');
+			currentAmountText.innerText = currentAmount;
+		} else {
+			currentAmount = totalAmount;
+			currentAmountText.innerText = currentAmount;
+		}
+
+		function addSpentAmount() {
+			let number = addInput.value;
+			currentAmount = totalAmount - number;
+			localStorage.setItem('currentAmount', currentAmount);
+			currentAmountText.innerText = currentAmount;
+		}
+		function setTotalAmount() {
+			openSetTotalPop();
+			const setTotalInput = document.querySelector("#set-total");
+			const setTotalBtn = document.querySelector(".add-set-total");
+
+			setTotalBtn.addEventListener('click', function() {
+				let number = setTotalInput.value;
+				totalAmount = number;
+				totalAmountText.innerText = totalAmount;
+				localStorage.setItem('totalAmount', totalAmount);
+				openSetTotalPop();
+			});
+		}
+	</script>
+</body>
+</html>
