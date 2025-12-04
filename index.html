@@ -132,12 +132,20 @@
 		}
 		.start-total {
 			gap: 1rem;
+			& p {
+				color: white;
+			}
+			& span {
+				color: white;
+			}
 		}
 		.current-amount {
+			color: white;
 			font-size: 2rem;
 			font-weight: bold;
 		}
 		.start-amount {
+			color: white;
 			font-weight: bold;
 		}
 		.add-amount-label {
@@ -174,7 +182,7 @@
 			gap: 1rem;
 			color: white;
 			& p {
-				font-size: 1.6rem;
+				font-size: 1.4rem;
 			}
 			& input {
 				width: 200px;
@@ -237,7 +245,14 @@
 			z-index: -1;
 		}
 
-
+		@media(max-width: 400px) {
+			h1 {
+				font-size: 3rem;
+			}
+			.add-amount-label {
+				font-size: 1.2rem;
+			}
+		}
 		@media(hover: hover) and (pointer: fine) {
 			.save:hover {
 				border: 2px solid var(--color2);
