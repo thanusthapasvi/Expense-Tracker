@@ -31,10 +31,18 @@
 			padding: 0.5rem;
 			justify-content: space-between;
 			z-index: 20;
+			border-bottom: 1px solid var(--color2);
+			box-shadow: 0 1px 4px var(--color2);
 		}
 		body {
 			background-color: var(--black);
 			position: relative;
+		}
+		h1 {
+			color: var(--text);
+		}
+		#menu {
+			border-radius: 50%;
 		}
 		.menu-pop {
 			display: none;
@@ -54,7 +62,7 @@
 			padding: 1rem;
 			padding-top: 3rem;
 			gap: 0.5rem;
-			background-color: hsl(from var(--black) h s calc(l + 10));
+			background-color: hsl(from var(--black) h s calc(l + 15));
 			border-radius: 12px;
 		}
 		.menu-row {
@@ -77,13 +85,19 @@
 			height: 2rem;
 			font-size: 1.2rem;
 		}
-		.default {
+		.reset-budget, .default {
 			font-size: 1.2rem;
 			width: 150px;
 			height: 2rem;
 			padding: 4px 6px;
-			background: linear-gradient(to bottom, #ff4545, #aa1212);
 			border: 2px solid transparent;
+		}
+		.reset-budget {
+			color: white;
+			background: linear-gradient(to bottom, #3434ff, #1212bb);
+		}
+		.default {
+			background: linear-gradient(to bottom, #ff4545, #aa1212);
 		}
 		.default:active {
 			transform: scale(0.9);
@@ -166,6 +180,9 @@
 			color: var(--text);
 			border: 2px solid transparent;
 			border-radius: 4px;
+		}
+		.add:active {
+			transform: scale(0.9);
 		}
 
 		.set-total-amount {
@@ -257,10 +274,7 @@
 			}
 		}
 		@media(hover: hover) and (pointer: fine) {
-			.save:hover {
-				border: 2px solid var(--color2);
-			}
-			.default:hover {
+			.add:hover, .save:hover, .default:hover {
 				border: 2px solid var(--color2);
 			}
 		}
@@ -294,6 +308,8 @@
 			<button type="button" class="add pointer" onclick="addSpentAmount()">Add</button>
 		</div>
 	</div>
+
+
 	<div class="set-total-amount">
 		<div class="set-total-amount-main gradient-border flex align-center justify-center flex-column">
 			<p onclick="openSetTotalPop()" class="close-pop">X</p>
@@ -317,6 +333,7 @@
 				<label for="first-day" class="menu-label">First day of Month:</label>
 				<input type="number" name="first-day" id="first-day" min="1" max="10" value="1" />
 			</div>
+			<button type="button" class="reset-budget pointer" onclick="resetBudget()">Reset Budget</button>
 			<button type="button" class="default pointer" onclick="restoreDefault()">Restore Default</button>
 			<button type="submit" class="save pointer">Save</button>
 		</div>
@@ -370,6 +387,7 @@
 			localStorage.setItem('color2', selectedColor2);
 			localStorage.setItem('firstDay', selectedFirstDay);
 
+			textColor();
 			openMenu();
 		} );
 
@@ -406,10 +424,16 @@
 			return lightness * 100;
 		}
 		function textColor() {
-			if(getLightness(savedColor1) <= 50) {
+			if(getLightness(localStorage.getItem('color')) <= 50) {
 		    	document.documentElement.style.setProperty('--text', "#FFFFFF");
 		    } else {
 		    	document.documentElement.style.setProperty('--text', "#000000");
+			}
+
+			if(getLightness(localStorage.getItem('color2')) <= 50) {
+				menu.style.backgroundColor = "#ffffffaa";
+			} else {
+				menu.style.backgroundColor = "#121212aa";
 			}
 		}
 
@@ -425,6 +449,9 @@
 
 		const addInput = document.querySelector("#add-spent");
 
+		const setTotalInput = document.querySelector("#set-total");
+		const setTotalBtn = document.querySelector(".add-set-total");
+
 		let isSetTotalOpen = false;
 		function openSetTotalPop() {
 			if(isSetTotalOpen) {
@@ -438,6 +465,7 @@
 		if(localStorage.getItem('totalAmount')) {
 			totalAmount = localStorage.getItem('totalAmount');
 			totalAmountText.innerText = totalAmount;
+			setTotalInput.value = totalAmount;
 		} else {
 			setTotalAmount();
 		}
@@ -451,22 +479,38 @@
 
 		function addSpentAmount() {
 			let number = addInput.value;
-			currentAmount = totalAmount - number;
-			localStorage.setItem('currentAmount', currentAmount);
-			currentAmountText.innerText = currentAmount;
+			if(Number(number) > currentAmount) {
+				alert("Enter a valid value!");
+				console.log("currentAmount = " + currentAmount);
+				console.log("number = " + number);
+			} else {
+				currentAmount = currentAmount - number;
+				localStorage.setItem('currentAmount', currentAmount);
+				currentAmountText.innerText = currentAmount;
+				addInput.value = 0;
+			}
 		}
 		function setTotalAmount() {
 			openSetTotalPop();
-			const setTotalInput = document.querySelector("#set-total");
-			const setTotalBtn = document.querySelector(".add-set-total");
-
-			setTotalBtn.addEventListener('click', function() {
-				let number = setTotalInput.value;
-				totalAmount = number;
-				totalAmountText.innerText = totalAmount;
-				localStorage.setItem('totalAmount', totalAmount);
-				openSetTotalPop();
-			});
+		}
+		setTotalBtn.addEventListener('click', function() {
+			let number = setTotalInput.value;
+			totalAmount = number;
+			currentAmount = totalAmount;
+			currentAmountText.innerText = currentAmount;
+			totalAmountText.innerText = totalAmount;
+			localStorage.setItem('totalAmount', totalAmount);
+			localStorage.setItem('currentAmount', currentAmount);
+			openSetTotalPop();
+		});
+		function resetBudget() {
+			localStorage.setItem('currentAmount', 0);
+			localStorage.setItem('totalAmount', 0);
+			currentAmount = 0, totalAmount = 0;
+			currentAmountText.innerText = currentAmount;
+			totalAmountText.innerText = totalAmount;
+			openMenu();
+			openSetTotalPop();
 		}
 	</script>
 </body>
