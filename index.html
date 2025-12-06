@@ -513,7 +513,7 @@
 				console.log("currentAmount = " + currentAmount);
 				console.log("number = " + number);
 			} else {
-				currentAmount = number(currentAmount) - Number(number);
+				currentAmount = Number(currentAmount) - Number(number);
 				localStorage.setItem('currentAmount', currentAmount);
 				currentAmountText.innerText = currentAmount;
 				addInput.value = 0;
