@@ -19,6 +19,7 @@
 		body, html {
 			width: 100%;
 			height: 100%;
+			user-select: none;
 		}
 		header {
 			position: fixed;
@@ -209,6 +210,33 @@
 		.close-pop:hover {
 			color: red;
 		}
+		.errorBlock {
+			position: fixed;
+			bottom: 2rem;
+			left: 50%;
+			width: clamp(280px, 50%, 480px);
+			height: clamp(2rem, auto, 4rem);
+			transform: translateX(-50%);
+			padding: 0.3rem 0.5rem;
+			border-radius: 0.4rem;
+			background: linear-gradient(to bottom right, #343434, #111111);
+			box-shadow: 0 0 6px #afafaf;
+			animation: comeUp 0.5s ease-out;
+			display: none;
+		}
+		.errorP {
+			text-align: center;
+			font-size: 1.2rem;
+			color: red;
+		}
+		@keyframes comeUp {
+			from {
+				transform: translateX(-50%) translateY(6rem);
+			}
+			to {
+				transform: translateX(-50%) translateY(0rem);
+			}
+		}
 
 		.flex {
 			display: flex;
@@ -326,8 +354,8 @@
 		</div>
 		<div class="bottom-row flex align-center justify-center flex-column">
 			<label for="add-spent" class="add-amount-label">Add Spent Amount</label>
-			<input type="number" name="add" id="add-spent" class="money-input" value="0" min="0"/>
-			<button type="button" class="add pointer button-effect" onclick="addSpentAmount()">Add</button>
+			<input type="type" inputmode="numeric" pattern="[0-9]*" name="add" id="add-spent" class="money-input" value="0" maxlength="9"/>
+			<button type="submit" class="add pointer button-effect" onclick="addSpentAmount()">Add</button>
 		</div>
 	</div>
 
@@ -336,7 +364,7 @@
 		<div class="set-total-amount-main gradient-border flex align-center justify-center flex-column">
 			<p onclick="openSetTotalPop()" class="close-pop">X</p>
 			<p>Set Month's Budget</p>
-			<input type="number" name="month-amount" id="set-total" class="money-input" min="1" required />
+			<input type="type" inputmode="numeric" pattern="[0-9]*" name="month-amount" id="set-total" class="money-input" min="1" maxlength="9" required />
 			<button class="add-set-total pointer button-effect" >Set Amount</button>
 		</div>
 	</div>
@@ -353,18 +381,20 @@
 			</div>
 			<div class="menu-row">
 				<label for="first-day" class="menu-label">First day of Month:</label>
-				<input type="number" name="first-day" id="first-day" min="1" max="10" value="1" />
+				<input type="number" inputmode="numeric" pattern="[0-9]*" name="first-day" id="first-day" min="1" max="10" value="1" />
 			</div>
 			<button type="button" class="reset-budget pointer" onclick="resetBudget()">Reset Budget</button>
 			<button type="button" class="default pointer" onclick="restoreDefault()">Restore Default</button>
 			<button type="submit" class="save pointer button-effect">Save</button>
 		</div>
 	</div>
+	<div class="errorBlock">
+		<p class="errorP">Error</p>
+	</div>
 	<script>
 		const menuPop = document.querySelector(".menu-pop"); //menu popup
 		const setTotalPop = document.querySelector(".set-total-amount"); //add total popup
 		const mainApp = document.querySelector(".budget-track"); //main spent interface
-
 
 		const menu = document.querySelector("#menu");
 		let isMenuOpen = false;
@@ -487,11 +517,12 @@
 				isSetTotalOpen = false;
 			} else {
 				setTotalPop.style.display = "flex";
+				setTotalInput.value = 0;
 				mainApp.style.display = "none"
 				isSetTotalOpen = true;
 			}
 		}
-		if(localStorage.getItem('totalAmount')) {
+		if(localStorage.getItem('totalAmount') && Number(localStorage.getItem('totalAmount')) > 0) {
 			totalAmount = localStorage.getItem('totalAmount');
 			totalAmountText.innerText = totalAmount;
 			setTotalInput.value = totalAmount;
@@ -508,10 +539,8 @@
 
 		function addSpentAmount() {
 			let number = addInput.value;
-			if(Number(number) > currentAmount) {
-				alert("Enter a valid value!");
-				console.log("currentAmount = " + currentAmount);
-				console.log("number = " + number);
+			if(Number(number) > currentAmount || isNaN(parseFloat(number))) {
+				errorMessage("Enter a valid value!");
 			} else {
 				currentAmount = Number(currentAmount) - Number(number);
 				localStorage.setItem('currentAmount', currentAmount);
@@ -521,16 +550,20 @@
 		}
 		function setTotalAmount() {
 			openSetTotalPop();
-		}
+		} //total amount set
 		setTotalBtn.addEventListener('click', function() {
 			let number = setTotalInput.value;
-			totalAmount = number;
-			currentAmount = totalAmount;
-			currentAmountText.innerText = currentAmount;
-			totalAmountText.innerText = totalAmount;
-			localStorage.setItem('totalAmount', totalAmount);
-			localStorage.setItem('currentAmount', currentAmount);
-			openSetTotalPop();
+			if(!number || isNaN(parseFloat(number))) {
+				errorMessage("Invalid Number! Please enter a valid number");
+			} else {
+				totalAmount = number;
+				currentAmount = totalAmount;
+				currentAmountText.innerText = currentAmount;
+				totalAmountText.innerText = totalAmount;
+				localStorage.setItem('totalAmount', totalAmount);
+				localStorage.setItem('currentAmount', currentAmount);
+				openSetTotalPop();
+			}
 		});
 		function resetBudget() {
 			localStorage.setItem('currentAmount', 0);
@@ -540,6 +573,17 @@
 			totalAmountText.innerText = totalAmount;
 			openMenu();
 			openSetTotalPop();
+		}
+
+		function errorMessage(message) {
+			const errorBlock = document.querySelector(".errorBlock");
+			const errorP = document.querySelector(".errorP");
+			errorBlock.style.display = "none";
+			errorBlock.style.display = "block";
+			errorP.innerText = message;
+			setTimeout(() => {
+				errorBlock.style.display = "none";
+			}, 1500);
 		}
 	</script>
 </body>
