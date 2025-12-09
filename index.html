@@ -16,6 +16,10 @@
 			padding: 0;
 			box-sizing: border-box;
 		}
+		input, button {
+			border: none;
+			outline: none;
+		}
 		body, html {
 			width: 100%;
 			height: 100%;
@@ -51,7 +55,7 @@
 			top: 50%;
 			left: 50%;
 			width: clamp(280px, 25%, 400px);
-			height: clamp(300px, 25%, 400px);
+			height: clamp(340px, 20%, 400px);
 			transform: translate(-50%, -50%);
 			background-color: transparent;
 			z-index: 10;
@@ -79,28 +83,27 @@
 		input[type="color"] {
 			width: 2rem;
 			height: 2rem;
-			border: none;
 		}
 		#first-day {
 			width: 4rem;
 			height: 2rem;
 			font-size: 1.2rem;
 		}
-		.reset-budget, .default {
+		.reset-budget, .default, .set-total-budget {
 			font-size: 1.2rem;
 			width: 150px;
 			height: 2rem;
 			padding: 4px 6px;
 			border: 2px solid transparent;
-		}
-		.reset-budget {
 			color: white;
-			background: linear-gradient(to bottom, #3434ff, #1212bb);
 		}
-		.default {
-			background: linear-gradient(to bottom, #ff4545, #aa1212);
+		.set-total-budget {
+			background: linear-gradient(120deg, #1212bb, #3434ff, #1212bb);
 		}
-		.default:active {
+		.default, .reset-budget {
+			background: linear-gradient(120deg, #aa1212, #ff4545, #aa1212);
+		}
+		.default:active, .reset-budget:active, .set-total-budget:active {
 			transform: scale(0.9);
 		}
 		.save {
@@ -189,13 +192,23 @@
 			background-color: black;
 			gap: 1rem;
 			color: white;
-			& p {
+			& .set-total-heading {
 				font-size: 1.4rem;
 			}
 			& button {
 				width: 6rem;
 				height: 2rem;
 				font-size: 1rem;
+			}
+		}
+		.budget-amount-buttons {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			gap: 1rem;
+
+			& button {
+				position: relative;
 			}
 		}
 		.close-pop {
@@ -210,7 +223,7 @@
 		.close-pop:hover {
 			color: red;
 		}
-		.errorBlock {
+		.toast {
 			position: fixed;
 			bottom: 2rem;
 			left: 50%;
@@ -220,14 +233,25 @@
 			padding: 0.3rem 0.5rem;
 			border-radius: 0.4rem;
 			background: linear-gradient(to bottom right, #343434, #111111);
-			box-shadow: 0 0 6px #afafaf;
+			box-shadow: 0 0 6px 2px #9a9a9a;
 			animation: comeUp 0.5s ease-out;
-			display: none;
+
+			& p {
+				text-align: center;
+				font-size: 1.2rem;
+			}
 		}
-		.errorP {
-			text-align: center;
-			font-size: 1.2rem;
-			color: red;
+		.errorBlock {
+			display: none;
+			& .errorP {
+				color: red;
+			}
+		}
+		.messageBlock {
+			display: none;
+			& .messageP {
+				color: cyan;
+			}
 		}
 		@keyframes comeUp {
 			from {
@@ -236,6 +260,40 @@
 			to {
 				transform: translateX(-50%) translateY(0rem);
 			}
+		}
+
+		.set-budget-tutorial {
+			display: none;
+			position: absolute;
+			top: calc(120% + 10px);
+			left: 50%;
+			transform: translateX(-50%);
+			min-width: 240px;
+			min-height: 2rem;
+			padding: 4px 6px;
+			background-color: rgba(0, 0, 0, 0.3);
+			color: white;
+			font-size: 1rem;
+			border-radius: 0.5rem;
+			border: 1px solid white;
+			pointer-events: none;
+			z-index: 5;
+
+			& .tutorial-tip {
+				position: absolute;
+				top: -10px;
+				left: 50%;
+				transform: translateX(-50%);
+				width: 10px;
+				height: 10px;
+				background-color: white;
+				clip-path: polygon(50% 0%, 0% 100%, 100% 100%);	
+			}
+		}
+
+		.edit-start {
+			/* pencil icon */
+			display: none;
 		}
 
 		.flex {
@@ -265,7 +323,7 @@
 			top: 0;
 			left: 0;
 			transform: translate(-2px, -2px);
-			background: linear-gradient(to right, var(--color), var(--color2));
+			background: linear-gradient(120deg, var(--color) 25%, var(--color2) 45%, var(--color2) 55%, var(--color) 75%);
 			border-radius: 12px;
 			z-index: -1;
 		}
@@ -273,7 +331,13 @@
 			background-color: transparent;
 			border: 3px solid var(--color);
 			border-radius: 4px;
-			color: var(--text);
+			color: white;
+		}
+		.menu-button-effect {
+			border-radius: 4px;
+			outline: 3px solid var(--color);
+			outline-offset: -6px;
+			transition: all 0.2s ease;
 		}
 		.money-input {
 			width: 200px;
@@ -287,7 +351,7 @@
 
 		}
 		.money-input:focus {
-			outline: 2px solid var(--color2);
+			outline: 3px solid var(--color2);
 		}
 		.gradient-text {
 			background: linear-gradient(to right, var(--color), var(--color2));
@@ -312,20 +376,36 @@
 			}
 		}
 		@media(hover: hover) and (pointer: fine) {
-			.save:hover, .default:hover {
-				border: 2px solid var(--color2);
-			}
 			.button-effect:hover {
 				background-color: var(--color);
 				border: 2px solid var(--color);
 				box-shadow: 0 0 6px var(--color);
 				color: var(--text);
 			}
+			.menu-button-effect:hover {
+				outline: 3px solid var(--color2);
+				outline-offset: 3px;
+			}
+			input:focus-visible, button:focus-visible {
+				box-shadow: 2px 2px var(--color), -2px -2px var(--color2), 0 0 4px 2px black;
+				animation: focusAni 1s linear infinite;
+			}
+			@keyframes focusAni {
+				0%, 100% {
+					box-shadow: 2px 2px var(--color), -2px -2px var(--color2), 0 0 4px 2px black;
+				}
+				25% {
+					box-shadow: -2px 2px var(--color), 2px -2px var(--color2), 0 0 4px 2px black;
+				}
+				50% {
+					box-shadow: -2px -2px var(--color), 2px 2px var(--color2), 0 0 4px 2px black;
+				}
+				75% {
+					box-shadow: 2px -2px var(--color), -2px 2px var(--color2), 0 0 4px 2px black;
+				}
+			}
 			.money-input:hover {
 				box-shadow: 0 0 6px 2px var(--color);
-			}
-			.money-input:hover:focus {
-				box-shadow: 0 0 6px 2px var(--color2);
 			}
 		}
 	</style>
@@ -354,7 +434,7 @@
 		</div>
 		<div class="bottom-row flex align-center justify-center flex-column">
 			<label for="add-spent" class="add-amount-label">Add Spent Amount</label>
-			<input type="type" inputmode="numeric" pattern="[0-9]*" name="add" id="add-spent" class="money-input" value="0" maxlength="9"/>
+			<input type="type" inputmode="numeric" pattern="[0-9]*" name="add" id="add-spent" class="money-input" placeholder="0" maxlength="9"/>
 			<button type="submit" class="add pointer button-effect" onclick="addSpentAmount()">Add</button>
 		</div>
 	</div>
@@ -363,9 +443,25 @@
 	<div class="set-total-amount">
 		<div class="set-total-amount-main gradient-border flex align-center justify-center flex-column">
 			<p onclick="openSetTotalPop()" class="close-pop">X</p>
-			<p>Set Month's Budget</p>
+			<p class="set-total-heading">Set Month's Budget</p>
 			<input type="type" inputmode="numeric" pattern="[0-9]*" name="month-amount" id="set-total" class="money-input" min="1" maxlength="9" required />
-			<button class="add-set-total pointer button-effect" >Set Amount</button>
+			<div class="budget-amount-buttons">
+				<button class="set-budget pointer button-effect">
+					Set Amount
+					<div class="set-budget-tutorial">
+						<div class="tutorial-tip"></div>
+						<p>To set the new amount & removes previous budget amount</p>
+					</div>
+					
+				</button>
+				<button class="add-set-budget pointer button-effect">
+					Add Amount
+					<div class="set-budget-tutorial">
+						<div class="tutorial-tip"></div>
+						<p>To add the entered amount to previous budget amount</p>
+					</div>
+				</button>
+			</div>
 		</div>
 	</div>
 
@@ -383,15 +479,22 @@
 				<label for="first-day" class="menu-label">First day of Month:</label>
 				<input type="number" inputmode="numeric" pattern="[0-9]*" name="first-day" id="first-day" min="1" max="10" value="1" />
 			</div>
-			<button type="button" class="reset-budget pointer" onclick="resetBudget()">Reset Budget</button>
-			<button type="button" class="default pointer" onclick="restoreDefault()">Restore Default</button>
+			<button type="button" class="set-total-budget pointer menu-button-effect" onclick="setTotalAmount()">Change Total</button>
+			<button type="button" class="reset-budget pointer menu-button-effect" onclick="resetBudget()">Reset Budget</button>
+			<button type="button" class="default pointer menu-button-effect" onclick="restoreDefault()">Restore Default</button>
 			<button type="submit" class="save pointer button-effect">Save</button>
 		</div>
 	</div>
-	<div class="errorBlock">
+	<div class="errorBlock toast">
 		<p class="errorP">Error</p>
 	</div>
+	<div class="messageBlock toast">
+		<p class="messageP">Message</p>
+	</div>
 	<script>
+		// for tutorial at first
+		let firstTimeSetBudget = true;
+
 		const menuPop = document.querySelector(".menu-pop"); //menu popup
 		const setTotalPop = document.querySelector(".set-total-amount"); //add total popup
 		const mainApp = document.querySelector(".budget-track"); //main spent interface
@@ -507,7 +610,8 @@
 		const addInput = document.querySelector("#add-spent");
 
 		const setTotalInput = document.querySelector("#set-total");
-		const setTotalBtn = document.querySelector(".add-set-total");
+		const setTotalBtn = document.querySelector(".set-budget");
+		const addSetTotalBtn = document.querySelector(".add-set-budget");
 
 		let isSetTotalOpen = false;
 		function openSetTotalPop() {
@@ -520,6 +624,10 @@
 				setTotalInput.value = 0;
 				mainApp.style.display = "none"
 				isSetTotalOpen = true;
+				if(firstTimeSetBudget) {
+					setBudgetTutorial();
+					firstTimeSetBudget = false;
+				}
 			}
 		}
 		if(localStorage.getItem('totalAmount') && Number(localStorage.getItem('totalAmount')) > 0) {
@@ -549,6 +657,9 @@
 			}
 		}
 		function setTotalAmount() {
+			if(isMenuOpen) {
+				openMenu();
+			}
 			openSetTotalPop();
 		} //total amount set
 		setTotalBtn.addEventListener('click', function() {
@@ -562,9 +673,27 @@
 				totalAmountText.innerText = totalAmount;
 				localStorage.setItem('totalAmount', totalAmount);
 				localStorage.setItem('currentAmount', currentAmount);
+				message("Total Budget Amount set Successfully");
 				openSetTotalPop();
 			}
 		});
+		addSetTotalBtn.addEventListener('click', function () {
+			let number = setTotalInput.value;
+			if(!number || isNaN(parseFloat(number))) {
+				errorMessage("Invalid Number! Please enter a valid number");
+			} else {
+				if(totalAmount)
+					totalAmount = Number(totalAmount) + Number(number);
+				else {
+					totalAmount = Number(number);
+				}
+				totalAmountText.innerText = totalAmount;
+				localStorage.setItem('totalAmount', totalAmount);
+				message("Added amount to total Budget Amount Successfully");
+				openSetTotalPop();
+			}
+		});
+
 		function resetBudget() {
 			localStorage.setItem('currentAmount', 0);
 			localStorage.setItem('totalAmount', 0);
@@ -573,6 +702,18 @@
 			totalAmountText.innerText = totalAmount;
 			openMenu();
 			openSetTotalPop();
+		}
+
+		function setBudgetTutorial() {
+			const setBudgetTutorial = document.querySelectorAll(".set-budget-tutorial");
+			setBudgetTutorial[0].style.display = "block";
+			setTimeout( () => {
+				setBudgetTutorial[0].style.display = "none";
+				setBudgetTutorial[1].style.display = "block";
+			}, 2000);
+			setTimeout( () => {
+				setBudgetTutorial[1].style.display = "none";
+			}, 4000);
 		}
 
 		function errorMessage(message) {
@@ -584,6 +725,16 @@
 			setTimeout(() => {
 				errorBlock.style.display = "none";
 			}, 1500);
+		}
+		function message(message) {
+			const messageBlock = document.querySelector(".messageBlock");
+			const messageP = document.querySelector(".messageP");
+			messageBlock.style.display = "none";
+			messageBlock.style.display = "block";
+			messageP.innerText = message;
+			setTimeout(() => {
+				messageBlock.style.display = "none";
+			}, 2000);
 		}
 	</script>
 </body>
